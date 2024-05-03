@@ -5,13 +5,16 @@ import '../model/todo.dart';
 // import '../widgets/search_box.dart';
 
 
+
 final todoslist = ToDo.todoList();
-class Home extends StatelessWidget {
-  const Home({super.key});
+class Home extends StatefulWidget {
+   const Home({super.key});
   
+  @override
+  State<Home> createState() => _HomeState();
+}
 
-  
-
+class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
@@ -33,7 +36,12 @@ class Home extends StatelessWidget {
                       ),
           
                       for (ToDo todoo in todoslist) 
-                        TodoItem(todo: todoo),
+                        TodoItem(
+                          todo: todoo,
+                          onTodoChange: _handleToDoChange,
+                          onDeleteItem: _deleteToDoItem
+                        
+                        ),
                       
                       
           
@@ -71,8 +79,25 @@ class Home extends StatelessWidget {
                       border: InputBorder.none
                     ),
                   )
-                )
-                  
+                ),
+                 
+                ),
+                
+                Container(
+                  margin: EdgeInsets.only(bottom: 20, right: 20),
+                  child: ElevatedButton(child:Text('+', style: TextStyle(fontSize: 40, color: Colors.white),) ,
+                  onPressed: (){},
+                    style: ElevatedButton.styleFrom(
+                    backgroundColor: tdBlue,
+                    minimumSize: Size(60, 60),
+                    elevation: 10,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide.none,
+                      borderRadius: BorderRadius.circular(4)
+
+                    )
+                  ),
+                  ),
                 )
               ],
             ),
@@ -80,6 +105,19 @@ class Home extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _handleToDoChange (ToDo todo){
+    setState(() {
+      todo.isDone = !todo.isDone;
+    });
+    
+  }
+
+  void _deleteToDoItem (String id){
+    setState(() {
+      todoslist.removeWhere((item) => item.id == id);
+    });
   }
 
   AppBar _buildAppBar() {
