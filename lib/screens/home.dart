@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:todo_app/constants/colors.dart';
 import '../widgets/todo_item.dart';
@@ -7,14 +9,25 @@ import '../model/todo.dart';
 
 
 final todoslist = ToDo.todoList();
+final _todoController = TextEditingController();
+List<ToDo> _foundToDo = [];
 class Home extends StatefulWidget {
+  
    const Home({super.key});
+   
   
   @override
   State<Home> createState() => _HomeState();
 }
 
+
 class _HomeState extends State<Home> {
+  @override 
+void initState(){
+  _foundToDo = todoslist;
+  super.initState();
+}
+
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
@@ -26,7 +39,9 @@ class _HomeState extends State<Home> {
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             child: Column(
               children: [
-                SearchBox(), 
+                SearchBox(
+                  onTextChanged: _runFilter,
+                ),
                 Expanded(
                   child: ListView(
                     children: [
@@ -35,7 +50,7 @@ class _HomeState extends State<Home> {
                         child: Text('All ToDos', style: TextStyle(fontSize:30, fontWeight: FontWeight.w500)),
                       ),
           
-                      for (ToDo todoo in todoslist) 
+                      for (ToDo todoo in _foundToDo) 
                         TodoItem(
                           todo: todoo,
                           onTodoChange: _handleToDoChange,
@@ -78,6 +93,7 @@ class _HomeState extends State<Home> {
                       hintText: 'Add a new todo item',
                       border: InputBorder.none
                     ),
+                    controller: _todoController,
                   )
                 ),
                  
@@ -86,7 +102,9 @@ class _HomeState extends State<Home> {
                 Container(
                   margin: EdgeInsets.only(bottom: 20, right: 20),
                   child: ElevatedButton(child:Text('+', style: TextStyle(fontSize: 40, color: Colors.white),) ,
-                  onPressed: (){},
+                  onPressed: (){
+                    _addToDo(_todoController.text);
+                  },
                     style: ElevatedButton.styleFrom(
                     backgroundColor: tdBlue,
                     minimumSize: Size(60, 60),
@@ -119,6 +137,27 @@ class _HomeState extends State<Home> {
       todoslist.removeWhere((item) => item.id == id);
     });
   }
+
+  void _addToDo (String toDo){
+    setState(() {
+      todoslist.add(ToDo(id: DateTime.fromMillisecondsSinceEpoch.toString(), todoText: toDo));
+    });
+    _todoController.clear();
+  }
+
+  void _runFilter (String enteredKeyword){
+    List<ToDo> results = [];
+    if(enteredKeyword.isEmpty){
+      results = todoslist;
+    }else{
+      results = todoslist.where((item) => item.todoText!.toLowerCase().contains(enteredKeyword.toLowerCase())).toList();
+    }
+    setState(() {
+      _foundToDo = results;
+    });
+  }
+  
+  
 
   AppBar _buildAppBar() {
     return AppBar(
@@ -154,9 +193,11 @@ class _HomeState extends State<Home> {
 }
 
 class SearchBox extends StatelessWidget {
+  final Function(String) onTextChanged; // Define callback function
   const SearchBox({
-    super.key,
-  });
+    Key? key,
+    required this.onTextChanged, // Accept the callback function
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -164,9 +205,11 @@ class SearchBox extends StatelessWidget {
       decoration: BoxDecoration( color: Colors.white,
         borderRadius: BorderRadius.circular(20)
       ),
-      child:const Padding(
+      child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 15),
         child: TextField(
+          onChanged: onTextChanged,
+          // onChanged: (value)=>_runFilter(value),
           decoration: InputDecoration(
             contentPadding: EdgeInsets.all(0),
             prefixIcon: Icon(Icons.search, color: tdBlack, size: 20),
